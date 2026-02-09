@@ -78,31 +78,6 @@ jobs:
             echo 'CHANGELOG_DELIMITER'
           } >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          release_name: Stream Talker Server [${{ steps.version.outputs.tag }}]
-          body: |
-            ## Changes in this release
-
-            ${{ steps.changelog.outputs.changelog }}
-
-            ---
-
-            **Docker Image:**
-            ```bash
-            docker pull ${{ env.REGISTRY }}:${{ steps.version.outputs.tag }}
-            docker pull ${{ env.REGISTRY }}:latest
-            ```
-
-            **Full Changelog:** https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md
-          draft: false
-          prerelease: false
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -126,6 +101,30 @@ jobs:
             ${{ env.REGISTRY }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          release_name: Stream Talker Server [${{ steps.version.outputs.tag }}]
+          body: |
+            ## Changes in this release
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ---
+
+            **Docker Image:**
+            ```bash
+            docker pull ${{ env.REGISTRY }}:${{ steps.version.outputs.tag }}
+            docker pull ${{ env.REGISTRY }}:latest
+            ```
+
+            **Full Changelog:** https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md
+          draft: false
+          prerelease: false
 
       - name: Summary
         run: |

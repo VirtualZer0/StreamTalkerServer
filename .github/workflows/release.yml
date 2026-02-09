@@ -105,8 +105,6 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}:${{ steps.version.outputs.tag }}
             ${{ env.REGISTRY }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Create GitHub Release
         uses: actions/create-release@v1

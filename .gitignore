@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+nul
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Project specific
+outputs/
+resources/*.wav
+resources/*.mp3
+!resources/demo_speaker0.mp3
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AI/Tool configs
+.claude/
+.serena/
+docs/plans/
+
+# Generated/Debug
+benchmarks/results/
+docs/
+data/
+server/debug/
+nul

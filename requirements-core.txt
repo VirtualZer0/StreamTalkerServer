@@ -1,0 +1,27 @@
+# Core dependencies for model loading and server operation
+# These are installed in the deps layer for better caching
+
+# Web framework and server
+fastapi==0.128.0
+uvicorn[standard]==0.40.0
+
+# Request parsing and file handling
+python-multipart==0.0.21
+python-magic==0.4.27
+
+# Audio processing
+pydub==0.25.1
+
+# Scientific computing (compatible with torch 2.9.1)
+numpy==1.26.4
+
+# System monitoring
+psutil==5.9.8
+qwen-tts @ git+https://github.com/rekuenkdr/Qwen3-TTS-streaming.git@dc7a8da2b1e52028fffcc5258fe0edd9b3f9eef2
+# Pin transformers <5.0 - the fork relaxed its pin (cecfe01b) but its code
+# uses transformers 4.x APIs (ROPE_INIT_FUNCTIONS["default"], config.pad_token_id)
+transformers>=4.57.3,<5.0.0
+# torchaudio is used for GPU-accelerated speed adjustment
+# In Docker, it's installed from the base PyTorch image
+# For local development, uncomment the line below if not using Docker:
+# torchaudio

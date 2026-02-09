@@ -1,0 +1,25 @@
+{
+  "name": "stream-talker-server",
+  "version": "1.0.0",
+  "description": "FastAPI TTS server with Qwen3-TTS models and voice cloning",
+  "type": "module",
+  "scripts": {
+    "build-docker": "bun run scripts/build-docker.ts",
+    "build-docker:push": "bun run scripts/build-docker.ts --push --tag-latest",
+    "build-docker:dry-run": "bun run scripts/build-docker.ts --dry-run"
+  },
+  "keywords": [
+    "tts",
+    "qwen",
+    "voice-cloning",
+    "fastapi",
+    "docker"
+  ],
+  "author": "VirtualZer0",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.11.0",
+    "bun-types": "latest"
+  }
+}

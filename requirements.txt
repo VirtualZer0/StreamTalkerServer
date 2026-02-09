@@ -1,0 +1,6 @@
+# Combined requirements for local development
+# Includes both core dependencies and dev tools
+# In Docker, only core and optional are installed (dev tools excluded)
+-r requirements-core.txt
+-r requirements-optional.txt
+-r requirements-dev.txt

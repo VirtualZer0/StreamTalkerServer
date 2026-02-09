@@ -1,0 +1,20 @@
+# Development and Testing Dependencies
+# These are NOT included in production Docker images
+
+# Testing framework
+pytest==8.3.4
+pytest-asyncio==0.24.0
+pytest-cov==6.0.0
+
+# Code formatting and linting
+black==24.10.0
+ruff==0.8.4
+
+# Type checking
+mypy==1.13.0
+
+# HTTP testing
+httpx==0.28.1  # For testing FastAPI endpoints
+
+# Benchmarking (optional - for local dev)
+# Already in project: benchmarks/run_benchmark.py uses psutil

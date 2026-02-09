@@ -1,0 +1,50 @@
+name: stream-talker-server-dev
+
+services:
+  stream-talker-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Use pre-built base image for fast rebuilds
+        # Build base once with: docker build --target server-prepare -t stream-talker-server-dev-env:latest .
+        SERVER_BASE: stream-talker-server-dev-env:latest
+    image: stream-talker-server-dev:1.0.0
+    container_name: stream-talker-server-dev
+    ports:
+      - "7860:7860"
+    volumes:
+      # Persistent data volume for settings and voice cache
+      - stream-talker-server-data:/data
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    networks:
+      - stream-talker-server-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.70'
+          memory: 4G
+        reservations:
+          cpus: '0.25'
+          memory: 1024M
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  stream-talker-server-network:
+    name: stream-talker-server-network
+    driver: bridge
+
+volumes:
+  stream-talker-server-data:
+    name: stream-talker-server-data

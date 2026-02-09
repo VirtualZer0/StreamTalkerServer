@@ -1,0 +1,141 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - 'release/**'
+
+env:
+  DOCKERHUB_USERNAME: virtualzer0
+  REGISTRY: virtualzer0/stream-talker-server
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract and validate version
+        id: version
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "Branch: $BRANCH_NAME"
+
+          # Extract version from release/X.Y.Z
+          VERSION=$(echo "$BRANCH_NAME" | grep -oP '^release/\K[0-9]+\.[0-9]+\.[0-9]+$')
+
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from branch name"
+            echo "Branch must be in format: release/X.Y.Z"
+            exit 1
+          fi
+
+          echo "Extracted version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if release exists
+        id: check_release
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Error: Tag $TAG already exists"
+            echo "Delete the existing tag or use a different version"
+            exit 1
+          fi
+
+          echo "Tag $TAG is available"
+
+      - name: Extract changelog
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+
+          # Extract changelog section for this version
+          CHANGELOG=$(awk "/^## \[$VERSION\]/ {flag=1; next} /^## \[/ {flag=0} flag" CHANGELOG.md)
+
+          if [ -z "$CHANGELOG" ]; then
+            echo "Error: Version $VERSION not found in CHANGELOG.md"
+            echo "Add a changelog entry for this version before releasing"
+            exit 1
+          fi
+
+          echo "Extracted changelog for version $VERSION"
+
+          # Also output to GitHub Actions (handle multiline)
+          {
+            echo 'changelog<<CHANGELOG_DELIMITER'
+            echo "$CHANGELOG"
+            echo 'CHANGELOG_DELIMITER'
+          } >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          release_name: Stream Talker Server [${{ steps.version.outputs.tag }}]
+          body: |
+            ## Changes in this release
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ---
+
+            **Docker Image:**
+            ```bash
+            docker pull ${{ env.REGISTRY }}:${{ steps.version.outputs.tag }}
+            docker pull ${{ env.REGISTRY }}:latest
+            ```
+
+            **Full Changelog:** https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md
+          draft: false
+          prerelease: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          build-args: |
+            INCLUDE_MODEL_06B=true
+            INCLUDE_MODEL_17B=true
+          tags: |
+            ${{ env.REGISTRY }}:${{ steps.version.outputs.tag }}
+            ${{ env.REGISTRY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: |
+          echo "## Release Complete! :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release:** https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Docker Images" >> $GITHUB_STEP_SUMMARY
+          echo "Built and pushed to DockerHub:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}:${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "docker pull ${{ env.REGISTRY }}:latest" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

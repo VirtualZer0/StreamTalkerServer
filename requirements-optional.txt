@@ -1,0 +1,14 @@
+# Optional/optimization packages
+# These are installed in server-prepare layer for faster rebuilds
+# Changes here won't invalidate the deps or models layer cache
+
+torchao>=0.15.0
+# Int4 quantization - DISABLED: requires Ada/Hopper GPUs AND CUDA 12.x
+# CUDA 13 is not yet supported by fbgemm-gpu-genai
+# See: https://docs.pytorch.org/FBGEMM/general/Releases.html
+# Uncomment when CUDA 13 support is added:
+# fbgemm-gpu-genai==1.5.0
+
+# NOTE: torchao and sageattention are installed separately in Dockerfile
+# - torchao: requires nightly for PyTorch 2.10 compatibility (--pre flag)
+# - sageattention: local wheel for multi-arch SM89 support
